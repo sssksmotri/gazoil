@@ -14,9 +14,9 @@ class OperationsHistoryBody extends StatefulWidget {
   VoidCallback setBody2;
   OperationsHistoryBody(
       {super.key,
-      required this.setBody0,
-      required this.setBody1,
-      required this.setBody2});
+        required this.setBody0,
+        required this.setBody1,
+        required this.setBody2});
 
   @override
   State<OperationsHistoryBody> createState() => _OperationsHistoryBodyState();
@@ -96,7 +96,7 @@ class _OperationsHistoryBodyState extends State<OperationsHistoryBody> {
       for (var element in transactions['cards'][0]['bonusTransactions']) {
         DateTime date = DateTime.parse(element['date']);
         String formattedDate = DateFormat('dd/MM/yy kk:mm').format(date);
-        int points = element['points'];
+        double points = (element['points'] as num).toDouble();
         String transactionType = productName[element['docType']] ??
             "Неизвестно";
 
@@ -114,7 +114,7 @@ class _OperationsHistoryBodyState extends State<OperationsHistoryBody> {
 
 
         else if (element['docType'] == "WriteOffPoints") {
-          int pointsSpent = points;
+          double pointsSpent = points;
 
 
           for (var bonus in archivedBonuses) {
@@ -122,9 +122,9 @@ class _OperationsHistoryBodyState extends State<OperationsHistoryBody> {
             int availableBonus = bonus['points'] - bonus['usedPoints'];
 
             if (availableBonus > 0) {
-              int deduction = pointsSpent > availableBonus
-                  ? availableBonus
-                  : pointsSpent;
+              double deduction = pointsSpent > availableBonus
+                  ? availableBonus.toDouble()
+                  : pointsSpent.toDouble();
               bonus['usedPoints'] += deduction;
               pointsSpent -= deduction;
             }
@@ -134,7 +134,7 @@ class _OperationsHistoryBodyState extends State<OperationsHistoryBody> {
           historyWidgets.add(HistoryItem(
             date: formattedDate,
             productName: transactionType,
-            points: -points,
+            points: points,
             money: 0,
             quantity: '-${points} баллов',
           ));
@@ -187,11 +187,11 @@ class _OperationsHistoryBodyState extends State<OperationsHistoryBody> {
                 .height * .7,
             child: ListView(
               children: [
-                if (isLoading) // Если данные еще загружаются, показываем прогресс-бар
+                if (isLoading)
                   Center(
                     child: CircularProgressIndicator(),
                   ),
-                ...historyWidgets.reversed, // Показываем данные
+                ...historyWidgets.reversed,
               ],
             ),
           ),
@@ -211,11 +211,11 @@ class HistoryItem extends StatelessWidget {
   bool isBurned;
   HistoryItem(
       {super.key,
-      required this.date,
-      required this.productName,
-      required this.points,
-      required this.money,
-      required this.quantity,
+        required this.date,
+        required this.productName,
+        required this.points,
+        required this.money,
+        required this.quantity,
         this.isBurned = false});
 
   @override
@@ -273,11 +273,11 @@ class HistoryContainer extends StatelessWidget {
 
   HistoryContainer(
       {super.key,
-      required this.date,
-      required this.addres,
-      required this.productName,
-      required this.points,
-      required this.quantity});
+        required this.date,
+        required this.addres,
+        required this.productName,
+        required this.points,
+        required this.quantity});
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +286,7 @@ class HistoryContainer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.only(left: 10, bottom: 10),
       decoration:
-          BoxDecoration(color: isDark ? const Color(0xFF343c40) : Colors.white),
+      BoxDecoration(color: isDark ? const Color(0xFF343c40) : Colors.white),
       child: Column(
         children: [
           Row(
@@ -330,7 +330,7 @@ class HistoryContainer extends StatelessWidget {
               child: Text(
                 "=${quantity.toString()}₽",
                 style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               ),
             )
           ]),

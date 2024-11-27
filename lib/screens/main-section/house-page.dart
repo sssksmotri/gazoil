@@ -60,38 +60,55 @@ class _HousePageState extends State<HousePage> {
         ? List<Map<String, dynamic>>.from(json.decode(archivedBonusesData))
         : [];
 
-    int totalAddedPoints = 0;
-    int totalSpentPoints = 0;
-    int expiredPoints = 0;
-    int balanceAmount = balance['points']?.toInt() ?? 0;
-    isLoading=true;
-    // Обработка бонусных транзакций
+    // Инициализация переменных
+    double totalAddedPoints = 0.0;
+    double totalSpentPoints = 0.0;
+    double expiredPoints = 0.0;
+    double balanceAmount = (balance['points'] ?? 0).toDouble();
+    isLoading = true;
+
+    DateTime now = DateTime.now();
+    DateTime oneMonthAgo = now.subtract(Duration(days: 60));
+
+    int transactionLimit = 100;
+    int transactionCount = 0;
+
     for (var card in transactions['cards']) {
       for (var transaction in card['bonusTransactions']) {
-        int points = (transaction['points'] ?? 0).toInt();
-        if (transaction['docType'] == "AddPoints") {
-          totalAddedPoints += points;
-        } else if (transaction['docType'] == "WriteOffPoints" ||
-            transaction['docType'] == "TransferPoints" ||
-            transaction['docType'] == "ConvertPointsToMoney" ||
-            transaction['docType'] == "ConvertPointsToFuel") {
-          totalSpentPoints += points.abs();
+        if (transactionCount >= transactionLimit) {
+          break;
+        }
+
+        // Преобразование points к double
+        double points = (transaction['points'] ?? 0).toDouble();
+        DateTime transactionDate = DateTime.parse(transaction['date']);
+
+        // Отбираем только транзакции за последний месяц
+        if (transactionDate.isAfter(oneMonthAgo)) {
+          if (transaction['docType'] == "AddPoints") {
+            totalAddedPoints += points;
+          } else if (transaction['docType'] == "WriteOffPoints" ||
+              transaction['docType'] == "TransferPoints" ||
+              transaction['docType'] == "ConvertPointsToMoney" ||
+              transaction['docType'] == "ConvertPointsToFuel") {
+            totalSpentPoints += points.abs();
+          }
+          transactionCount++;
         }
       }
     }
 
     // Вычисляем количество сгоревших баллов
-    int calculatedPoints = totalAddedPoints - totalSpentPoints;
+    double calculatedPoints = totalAddedPoints - totalSpentPoints;
     expiredPoints = (calculatedPoints > balanceAmount)
         ? calculatedPoints - balanceAmount
-        : 0;
+        : 0.0;
 
     // Получаем бонусы за неделю и месяц
-    int weekPoints = validBonuses['data']?['week_points']?.toInt() ?? 0;
-    int monthPoints = validBonuses['data']?['month_points']?.toInt() ?? 0;
+    double weekPoints = (validBonuses['data']?['week_points'] ?? 0).toDouble();
+    double monthPoints = (validBonuses['data']?['month_points'] ?? 0).toDouble();
 
     // Проверка на истечение срока действия бонусов
-    DateTime now = DateTime.now();
     DateTime baseDate = DateTime(now.year, 1, 1);
 
     // Перебираем архив бонусов и проверяем их срок действия
@@ -100,7 +117,7 @@ class _HousePageState extends State<HousePage> {
 
       if (validUntil.isBefore(now)) {
         // Бонус истек, добавляем его к сгоревшим баллам
-        expiredPoints += bonus['points'] as int;
+        expiredPoints += (bonus['points'] as num).toDouble();
         // Убираем бонус из списка действующих (не сохраняем его в новый архив)
         archivedBonuses.remove(bonus);
       }
@@ -111,14 +128,15 @@ class _HousePageState extends State<HousePage> {
 
     // Обновление UI
     setState(() {
-      isLoading=false;
+      isLoading = false;
       infoBlocksList = [
         InfoBlock(value: '$weekPoints', description: 'Доступно до конца недели', isDark: isDark),
-        InfoBlock(value: '$monthPoints', description: 'Доступно До конца месяца', isDark: isDark),
+        InfoBlock(value: '$monthPoints', description: 'Доступно до конца месяца', isDark: isDark),
         InfoBlock(value: '$expiredPoints', description: 'Сгорело за 60 дней', isDark: isDark),
       ];
     });
   }
+
 
 
   void startPeriodicDataUpdate(bool isDark) {
@@ -140,7 +158,7 @@ class _HousePageState extends State<HousePage> {
     getData(isDark);
     startPeriodicDataUpdate(isDark);
     //таймер нужен для автоматического обновления данных
-    timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+    timer = Timer.periodic(const Duration(minutes: 10), (timer) async {
 
       SharedPreferences instance = await SharedPreferences.getInstance();
       // getMoneyCourse();

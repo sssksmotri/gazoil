@@ -6,20 +6,12 @@ import 'dart:io';
 
 
 void main() async {
-  HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
   await Future.delayed(const Duration(milliseconds: 300));
   runApp(MyApp());
 }
 
-class MyHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true; // Игнорировать проверку сертификата
-  }
-}
+
 
 class MyApp extends StatefulWidget {
   MyApp({super.key});
