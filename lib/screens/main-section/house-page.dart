@@ -44,14 +44,14 @@ class _HousePageState extends State<HousePage> {
   late Timer timer;
   List<Widget> infoBlocksList = [];
   bool isLoading=true;
+  int currentPage = 1;
 
   Future<void> getData(bool isDark) async {
     SharedPreferences instance = await SharedPreferences.getInstance();
     String token = instance.getString('token')!;
 
-    // Получение данных
     Map<String, dynamic> balance = await getBalance(token);
-    Map<String, dynamic> transactions = await getHistory(token);
+    Map<String, dynamic> transactions = await getHistory(token,page: currentPage);
     Map<String, dynamic> validBonuses = await getValidBonuses(token);
 
     // Загрузка архивных бонусов
