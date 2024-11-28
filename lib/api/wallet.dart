@@ -65,39 +65,31 @@ Future<Map<String, dynamic>> getHistory2(token) async {
   return json.decode(response.body);
 }
 
-Future<Map<String, dynamic>> getHistory(String token, {int page = 0, int pageSize = 10}) async {
-
+Future<Map<String, dynamic>> getHistory(token,{int page = 0, int pageSize = 10}) async {
   Map profile = (await getProfile(token));
   String phone = profile['phone'];
   String formatted = "${phone.substring(0,1)}-${phone.substring(1,4)}-${phone.substring(4,7)}-${phone.substring(7,9)}-${phone.substring(9,11)}";
-
 
   String username = 'mobile';
   String password = 'gGTC\$1fM';
   String basicAuth = 'Basic ${base64.encode(utf8.encode('$username:$password'))}';
 
-
   String endDate = DateTime.now().subtract(Duration(days: 1)).toString().replaceAll(" ", "T");
-  String startDate = '2023-01-01T00:00:00';
-
-
+  String startDate = '2024-01-01T00:00:00';
   http.Response response = await http.post(
     Uri.parse('http://94.79.22.45:8282/emitent/hs/cards/getTransaction'),
     headers: <String, String>{'authorization': basicAuth},
     body: json.encode({
-      "organizationId": "612306662431",
-      "departmentId": "mobile",
-      "phone": formatted,
+      "organizationId":"612306662431",
+      "departmentId":"mobile",
+      "phone":formatted,
       "period": {
-        "startDate": startDate,
-        "endDate": endDate,
-      },
-      "page": page,
-      "pageSize": pageSize,
+        "startDate":startDate,
+        "endDate":endDate
+      }
     }),
-  );
 
-  // Проверяем успешность запроса
+  );
   if (response.statusCode == 200) {
     print(response.body);
     return json.decode(response.body)['data'];
